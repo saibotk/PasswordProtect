@@ -1,0 +1,19 @@
+{
+    "name": "michaelmetz/passwordprotect",
+    "description": "Protect laravel routes with just a password",
+    "authors": [
+        {
+            "name": "Michael Metz",
+            "email": "michael@hullo.us"
+        }
+    ],
+    "autoload": {
+      "psr-4": {
+          "Michaelmetz\\Passwordprotect\\": "src"
+      }
+    },
+    "require": {
+        "php": ">= 5.5.0",
+        "illuminate/support": ">= 5.0"
+    }
+}
