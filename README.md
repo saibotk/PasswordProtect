@@ -4,12 +4,12 @@ Password Protect is a Laravel 5 package that allows routes to be protected with 
 
 Installation
 ---
-1.In the root directory of your laravel project, run the following in the command line
+#### 1.In the root directory of your laravel project, run the following in the command line
 ```
 $ composer require michaelmetz/passwordprotect
 ```
 
-2.Once that finishes installing register the Password Protect service provider by adding the following line to
+#### 2.Once that finishes installing register the Password Protect service provider by adding the following line to
 ><b>config/app.php</b>
 ```php
 /*
@@ -17,28 +17,16 @@ $ composer require michaelmetz/passwordprotect
  */
 Michaelmetz\Passwordprotect\PasswordProtectServiceProvider::class,
 ```
-3.In order to use the passwordprotect middleware it must be added to
+#### 3.In order to use the passwordprotect middleware it must be added to
 ><b>app/Http/Kernal.php</b>
 ```php
-/**
-* The application's route middleware.
-*
-* These middleware may be assigned to groups or used individually.
-*
-* @var array
-*/
 protected $routeMiddleware = [
-    'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
-    'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-    'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
-    'can' => \Illuminate\Auth\Middleware\Authorize::class,
-    'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-    'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+    /*Default Middleware*/
     //Package MiddleWare
     'passwordprotect' => \Michaelmetz\Passwordprotect\Middleware\PasswordProtect::class,
 ];
 ```
-4.Finally run the following command
+#### 4.Finally run the following command
 ```
 $ php artisan vendor:publish --provider="Michaelmetz\Passwordprotect\PasswordProtectServiceProvider"
 ```
@@ -100,7 +88,7 @@ Configuration
 ----
 
 #### Recaptcha
-To deter brute force password attempts Password Protect integrates well with [Greg Gilberts recaptcha package](https://github.com/greggilbert/recaptcha)
+To deter brute force password attempts, Password Protect integrates well with [Greg Gilberts recaptcha package](https://github.com/greggilbert/recaptcha)
 
 If you have recaptcha installed and configured, then change the following config key to 'true'
 ><b>congfig/passwordprotect.php</b>
