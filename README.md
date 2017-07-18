@@ -92,9 +92,9 @@ PP_JACKS/SUPER/SECRET=CandyYummyYummy
 Lets say a user navigates to ``'jacks/super'`` and supplys the valid password ``'IDontSleep'``
 
 Then the user will have access to ``'jack'`` , ``'jacks/super'`` , ``'jacks/super/secret/garage'``  
-Since they all pass a depth of 1 to the password protect middleware, they all look for the `'jack'` password.
+Since they all pass a depth of 1 to the password protect middleware, they all look for the `'PP_JACKS'` password.
 
-Since `'jacks/super/secrect'` passes a depth of ``'3'`` it will look for the ``'JACKS/SUPER/SECRET'`` password and still be locked.
+Since `'jacks/super/secrect'` passes a depth of ``'3'`` it will look for the ``'PP_JACKS/SUPER/SECRET'`` password and still be locked.
 
 Configuration
 ----
