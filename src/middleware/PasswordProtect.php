@@ -5,6 +5,7 @@ namespace Michaelmetz\Passwordprotect\Middleware;
 use Closure;
 use Illuminate\Foundation\Testing\HttpException;
 use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Contracts\Auth\Guard;
 
 /**
  * Middleware for the PasswordProtect Package
@@ -14,7 +15,7 @@ use Illuminate\Contracts\Hashing\Hasher;
  */
 class PasswordProtect
 {
-    protected $hash;
+    protected $hash, $auth;
     private $desiredRouteKeyName;
     private $routeRouteKeyName;
 
@@ -22,10 +23,12 @@ class PasswordProtect
      * PasswordProtect constructor Sets session key names from config/passwordprotect.php
      *
      * @param Hasher $hash - used for checking hash password stored in session
+     * @param Gate $gate - used to optionally check if user is signed in bypass protected page
      */
-    public function __construct(Hasher $hash)
+    public function __construct(Hasher $hash, Guard $auth)
     {
         $this->hash = $hash;
+        $this->auth = $auth;
         $this->desiredRouteKeyName = config('passwordprotect.desired_route_key_name');
         $this->routeRouteKeyName = config('passwordprotect.root_route_key_name');
     }
@@ -34,15 +37,20 @@ class PasswordProtect
      *
      * @param  \Illuminate\Http\Request $request - used to get the route path its coming from
      * @param  \Closure                 $next - could be any route this middleware is attached to
-     * @param                           $depth - how deep into the breadcrumb route you want to check
+     * @param  integer                  $depth - how deep into the breadcrumb route you want to check
+     * @param  bool                     $authByPass - by pass the password input if user is signed in
      *
      * @return next - if the session has valid route key with valid password
      * @return redirect - to password protect form page so user can attempt to supply a valid password
      *
      * @throws HttpException -  if programmer supplies a bad $depth
      */
-    public function handle($request, Closure $next, $depth)
+    public function handle($request, Closure $next, $depth, $authByPass = false)
     {
+        if( !(is_bool( (bool) $authByPass) ) )
+            throw new HttpException("Second route parameter must be a boolean");
+        if($authByPass && $this->auth->check())
+                return $next($request);
 
         $rootRoute = "";
 
