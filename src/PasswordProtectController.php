@@ -3,8 +3,8 @@
 namespace Michaelmetz\Passwordprotect;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Testing\HttpException;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Controller for the PasswordProtect Package
@@ -62,6 +62,7 @@ class PasswordProtectController extends Controller
      * @return redirect - to desired protected route IF correct password is supplied.
      * @return redirect - back to form IF incorrect password
      *
+     * @throws \HttpException
      */
     function postForm(Request $request)
     {
@@ -80,7 +81,7 @@ class PasswordProtectController extends Controller
             else if(config('recaptcha.version') == 1)
                 $validate['recaptcha_response_field'] = 'required|recaptcha';
             else
-                throw new HttpException("recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
+                throw new \HttpException("recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
 
         }
 
