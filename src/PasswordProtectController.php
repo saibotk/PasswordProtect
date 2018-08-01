@@ -4,6 +4,7 @@ namespace Michaelmetz\Passwordprotect;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use UnexpectedValueException;
 
 /**
  * Controller for the PasswordProtect Package
@@ -61,8 +62,7 @@ class PasswordProtectController extends Controller
      * @return redirect - to desired protected route IF correct password is supplied.
      * @return redirect - back to form IF incorrect password
      *
-	 * @throws \Symfony\Component\HttpKernel\Exception\HttpException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+	 * @throws UnexpectedValueException - if the recaptha.version is wrong
      */
     function postForm(Request $request)
     {
@@ -81,7 +81,7 @@ class PasswordProtectController extends Controller
             else if(config('recaptcha.version') == 1)
                 $validate['recaptcha_response_field'] = 'required|recaptcha';
             else
-                abort(500, "recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
+                throw new UnexpectedValueException("recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
 
         }
 
@@ -119,14 +119,13 @@ class PasswordProtectController extends Controller
      *
      * @param $rootRoute
      * @return String - the valid password from .env
-	 * @throws \Symfony\Component\HttpKernel\Exception\HttpException			- if .env does not contain the given rootRoute
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException	- if .env does not contain the given rootRoute
+	 * @throws UnexpectedValueException	- if .env does not contain the given rootRoute
      */
     private function getValidPasswordFromEnv($rootRouteKey){
         $validPassword = env($rootRouteKey);
 
         if ($validPassword == null)
-            abort(500, "Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
+            throw new UnexpectedValueException("Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
 
         return $validPassword;
     }
