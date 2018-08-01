@@ -49,7 +49,7 @@
     {{--Only the form below is needed you can get rid od the other html and make this fit your project--}}
     {{--Varibles Passed--}}
     {{--$protectedRoute--}}
-    <form id="form" method="POST" action="/passwordprotect" >
+    <form id="form" method="POST" action="{{ url('/passwordprotect') }}" >
         {{--/\this route handles the password validation--}}
         {{csrf_field()}}
 
