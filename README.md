@@ -4,12 +4,12 @@ Password Protect is a Laravel 5 package that allows routes to be protected with 
 
 Installation
 ---
-#### 1.In the root directory of your laravel project, run the following in the command line
+#### 1. In the root directory of your laravel project, run the following in the command line
 ```
 $ composer require michaelmetz/passwordprotect
 ```
 
-#### 2.Once that finishes installing register the Password Protect service provider by adding the following line to
+##### 1b. (Only Laravel version < 5.5): Once that finishes installing register the Password Protect service provider by adding the following line to
 ><b>config/app.php</b>
 ```php
 /*
@@ -17,7 +17,7 @@ $ composer require michaelmetz/passwordprotect
  */
 Michaelmetz\Passwordprotect\PasswordProtectServiceProvider::class,
 ```
-#### 3.In order to use the passwordprotect middleware it must be added to
+#### 2. In order to use the passwordprotect middleware it must be added to
 ><b>app/Http/Kernal.php</b>
 ```php
 protected $routeMiddleware = [
@@ -26,7 +26,7 @@ protected $routeMiddleware = [
     'passwordprotect' => \Michaelmetz\Passwordprotect\Middleware\PasswordProtect::class,
 ];
 ```
-#### 4.Finally run the following command
+#### 3. Finally run the following command
 ```
 $ php artisan vendor:publish --provider="Michaelmetz\Passwordprotect\PasswordProtectServiceProvider"
 ```
@@ -59,7 +59,7 @@ Once the user enters the correct password they will be able to access the route 
 Advanced Usage
 ----
 #### Route Depth
-The Password Protect middleware expects one integer as a parameter. This parameter indicates how far down the route path the password will be. 
+The Password Protect middleware expects one integer as a parameter. This parameter indicates how far down the route path the password will be.
 <p align="center"><img src ="https://media.giphy.com/media/xUA7aMrZRjAjHbAYla/giphy.gif" height="70"/></p>
 
 
@@ -99,7 +99,7 @@ Once this is set recaptcha should appear on the default view.
 
 #### Customize The Password Page
 
-The Password input page view is published to 
+The Password input page view is published to
 
 >views/vendor/passswordprotect/passwordprotect.blade.php
 
