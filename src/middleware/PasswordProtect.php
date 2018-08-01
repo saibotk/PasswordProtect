@@ -3,7 +3,6 @@
 namespace Michaelmetz\Passwordprotect\Middleware;
 
 use Closure;
-use Illuminate\Foundation\Testing\HttpException;
 use Illuminate\Contracts\Hashing\Hasher;
 
 /**
@@ -39,7 +38,8 @@ class PasswordProtect
      * @return next - if the session has valid route key with valid password
      * @return redirect - to password protect form page so user can attempt to supply a valid password
      *
-     * @throws HttpException -  if programmer supplies a bad $depth
+	 * @throws \Symfony\Component\HttpKernel\Exception\HttpException 			-  if programmer supplies a bad $depth or no route password is set
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException 	-  if programmer supplies a bad $depth or no route password is set
      */
     public function handle($request, Closure $next, $depth)
     {
@@ -52,7 +52,7 @@ class PasswordProtect
 
         // Validate that depth is correct or return a error.
         if ($breadcrumbsSize <= 0 || $breadcrumbsSize < $depth)
-            throw new HttpException('There is an error in defining the depth in your password protected routes:' . $route . "\ndepth:" . $depth);
+            abort(500, 'There is an error in defining the depth in your password protected routes:' . $route . "\ndepth:" . $depth);
 
         // Generate how shallow the protected route will be
         for ($i = 0; $i < $depth; $i++)
@@ -68,7 +68,7 @@ class PasswordProtect
 
         // If env returns null then the .env is not configured for this route
         if($routePassword == null)
-                throw new HttpException("Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
+                abort(500, "Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
 
         // Check if session holds the correct password for the given route
         if ($request->session()->has($rootRouteKey))
@@ -96,16 +96,24 @@ class PasswordProtect
      *
      * @param $rootRoute
      * @return String - the valid password from .env
-     * @throws HttpException - if .env does not contain the given rootRoute
+	 * @throws \Symfony\Component\HttpKernel\Exception\HttpException 			- if .env does not contain the given rootRoute
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException	- if .env does not contain the given rootRoute
      */
     private function getValidPasswordFromEnv($rootRouteKey){
         $validPassword = env($rootRouteKey);
 
         if ($validPassword == null)
-            throw new HttpException("Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
+            abort(500, "Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
 
         return $validPassword;
     }
+
+	/**
+	 * Generates the root route key for the root route
+	 *
+	 * @param $rootRoute
+	 * @return String - the root route path as a key
+	 */
     public function generateRootRouteKey($rootRoute){
         return 'PP_' . strtoupper($rootRoute);
     }

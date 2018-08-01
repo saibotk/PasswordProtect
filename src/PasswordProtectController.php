@@ -4,7 +4,6 @@ namespace Michaelmetz\Passwordprotect;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Controller for the PasswordProtect Package
@@ -62,7 +61,8 @@ class PasswordProtectController extends Controller
      * @return redirect - to desired protected route IF correct password is supplied.
      * @return redirect - back to form IF incorrect password
      *
-     * @throws \HttpException
+	 * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      */
     function postForm(Request $request)
     {
@@ -81,7 +81,7 @@ class PasswordProtectController extends Controller
             else if(config('recaptcha.version') == 1)
                 $validate['recaptcha_response_field'] = 'required|recaptcha';
             else
-                throw new \HttpException("recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
+                abort(500, "recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
 
         }
 
@@ -119,16 +119,24 @@ class PasswordProtectController extends Controller
      *
      * @param $rootRoute
      * @return String - the valid password from .env
-     * @throws HttpException - if .env does not contain the given rootRoute
+	 * @throws \Symfony\Component\HttpKernel\Exception\HttpException			- if .env does not contain the given rootRoute
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException	- if .env does not contain the given rootRoute
      */
     private function getValidPasswordFromEnv($rootRouteKey){
         $validPassword = env($rootRouteKey);
 
         if ($validPassword == null)
-            throw new HttpException("Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
+            abort(500, "Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
 
         return $validPassword;
     }
+
+	/**
+	 * Generates the root route key for the root route
+	 *
+	 * @param $rootRoute
+	 * @return String - the root route path as a key
+	 */
     public function generateRootRouteKey($rootRoute){
         return 'PP_' . strtoupper($rootRoute);
     }
