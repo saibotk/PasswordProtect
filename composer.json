@@ -20,9 +20,9 @@
     },
 	"extra": {
 		"laravel": {
-			"providers": {
+			"providers": [
 				"Michaelmetz\\Passwordprotect\\PasswordProtectServiceProvider"
-			}
+			]
 		}
 	}
 }
