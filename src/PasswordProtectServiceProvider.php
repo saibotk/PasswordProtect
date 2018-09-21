@@ -19,7 +19,7 @@ class PasswordProtectServiceProvider extends ServiceProvider
      */
     public function boot(\Illuminate\Routing\Router $router)
     {
-        //either do this or manuel register it in kernal.php
+        //either do this or manually register it in kernel.php
         //$router->aliasMiddleware('passwordprotect', 'Michaelmetz\Passwordprotect\Middleware\PasswordProtect');
 
         $this->loadViewsFrom(__DIR__.'/views', 'passwordprotect');

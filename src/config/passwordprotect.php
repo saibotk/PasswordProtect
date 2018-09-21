@@ -15,6 +15,20 @@ return [
     */
     'use_greggilbert_recaptcha'    => false,
 
+	/*
+	|--------------------------------------------------------------------------
+	| SecurImage Captcha
+	|--------------------------------------------------------------------------
+	|
+	|	Activate SecurImage Captcha instead of recaptcha.
+	|	Make sure to configure a input field in the form to send a 'captcha_code'
+	|	and install SecurImage version 3.x because this does not work with 4.x or
+	|	newer.
+	|	See https://stackoverflow.com/questions/28928767/implementing-php-captcha-into-laravel-framework
+	|
+	*/
+	'use_securimage_captcha'	=> false,
+
     /*
     |--------------------------------------------------------------------------
     | Session Key Names

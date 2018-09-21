@@ -18,7 +18,7 @@ class PasswordProtectController extends Controller
     private $routeRouteKeyName;
 
     /**
-     * PasswordProtectController constructor. sets session key names from config/passwordprotect.php
+     * PasswordProtectController constructor. Sets session key names from config/passwordprotect.php
      */
     public function __construct(){
         $this->desiredRouteKeyName = config('passwordprotect.desired_route_key_name');
@@ -74,18 +74,29 @@ class PasswordProtectController extends Controller
 
         // I suggest also using recaptha to prevent brute force attacks, this is to add it to validation from the view
 
-        if(config('passwordprotect.use_greggilbert_recaptcha'))
-        {
+        if(config('passwordprotect.use_greggilbert_recaptcha')) {
             if(config('recaptcha.version') == 2)
                 $validate['g-recaptcha-response'] = 'required|recaptcha';
             else if(config('recaptcha.version') == 1)
                 $validate['recaptcha_response_field'] = 'required|recaptcha';
             else
                 throw new UnexpectedValueException("recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
-
-        }
+        } else if(config('passwordprotect.use_securimage_captcha')) {
+			$validate['captcha_code'] = 'required|string';
+		}
 
         $this->validate($request, $validate);
+
+		if(config('passwordprotect.use_securimage_captcha')) {
+			$image = new \Securimage();
+		    if ($image->check($request->captcha_code) !== true)
+		    {
+				$request->session()->forget('errors');
+		        $errors= ['The captcha code you entered does not match'];
+		        return \Redirect::back()
+		            ->withErrors($errors);
+		    }
+		}
 
         // Pull route variables from session;
         $desiredRoute = $request->session()->get($this->desiredRouteKeyName);
@@ -99,7 +110,7 @@ class PasswordProtectController extends Controller
         // Check if password is correct
         if ($enteredPassword != $validPassword) {
             $request->session()->forget('errors');
-            return redirect()->back();
+            return redirect()->back()->withErrors('Wrong password');
         }
 
         // Password is correct; get rid of leftover session stuff

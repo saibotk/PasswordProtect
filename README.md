@@ -18,7 +18,7 @@ $ composer require michaelmetz/passwordprotect
 Michaelmetz\Passwordprotect\PasswordProtectServiceProvider::class,
 ```
 #### 2. In order to use the passwordprotect middleware it must be added to
-><b>app/Http/Kernal.php</b>
+><b>app/Http/Kernel.php</b>
 ```php
 protected $routeMiddleware = [
     /*Default Middleware*/
