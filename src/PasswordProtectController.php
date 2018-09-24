@@ -2,7 +2,7 @@
 
 namespace Michaelmetz\Passwordprotect;
 
-use Michaelmetz\Passwordprotect\Models;
+use Michaelmetz\Passwordprotect\Models\RouteCaptchaCount;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use UnexpectedValueException;
@@ -21,7 +21,8 @@ class PasswordProtectController extends Controller
     /**
      * PasswordProtectController constructor. Sets session key names from config/passwordprotect.php
      */
-    public function __construct(){
+    public function __construct()
+    {
         $this->desiredRouteKeyName = config('passwordprotect.desired_route_key_name');
         $this->routeRouteKeyName = config('passwordprotect.root_route_key_name');
     }
@@ -37,20 +38,18 @@ class PasswordProtectController extends Controller
      * @return View - password protect view
      * @return redirect - if the this route was accessed without passing through middleware/PasswordProtect.php
      */
-    function getForm(Request $request)
+    public function getForm(Request $request)
     {
         // Only send the password form if request passed through PasswordProtect the middleware
-        if ($request->session()->exists($this->desiredRouteKeyName))
-        {
-            if($request->session()->exists($this->routeRouteKeyName))
-            {
+        if ($request->session()->exists($this->desiredRouteKeyName)) {
+            if ($request->session()->exists($this->routeRouteKeyName)) {
                 $request->session()->reflash();
                 $protectedRoute = $request->session()->get($this->desiredRouteKeyName);
                 return view('passwordprotect::passwordprotect', compact('protectedRoute'));
             }
         }
 
-            return redirect('/');
+        return redirect('/');
     }
 
     /**
@@ -63,64 +62,63 @@ class PasswordProtectController extends Controller
      * @return redirect - to desired protected route IF correct password is supplied.
      * @return redirect - back to form IF incorrect password
      *
-	 * @throws UnexpectedValueException - if the recaptha.version is wrong
+     * @throws UnexpectedValueException - if the recaptha.version is wrong
      */
-    function postForm(Request $request)
+    public function postForm(Request $request)
     {
-
         $request->session()->keep([$this->desiredRouteKeyName,$this->routeRouteKeyName]);
 
-		// Pull route variables from session;
-		$desiredRoute = $request->session()->get($this->desiredRouteKeyName);
-		$rootRoute = $request->session()->get($this->routeRouteKeyName);
+        // Pull route variables from session;
+        $desiredRoute = $request->session()->get($this->desiredRouteKeyName);
+        $rootRoute = $request->session()->get($this->routeRouteKeyName);
 
-		if(config('passwordprotect.use_onfailure_captcha_counter')) {
-			$routecaptchacount = RouteCaptchaCount::getByRouteName($rootRoute);
-		}
+        if (config('passwordprotect.use_onfailure_captcha_counter')) {
+            $routecaptchacount = RouteCaptchaCount::getByRouteName($rootRoute);
+        }
 
         // Validate
         $validate = ['password' => 'required'];
 
         // I suggest also using recaptcha to prevent brute force attacks, this is to add it to validation from the view.
-        $reachedthreshold = !is_null($routecaptchacount) && config('passwordprotect.onfailure_captcha_counter_threshold') >= $routecaptchacount->count;
-		$checkcaptchaneeded = !config('passwordprotect.use_onfailure_captcha_counter') || $reachedthreshold;
-		if($checkcaptchaneeded) {
-	        if(config('passwordprotect.use_greggilbert_recaptcha')) {
-	            if(config('recaptcha.version') == 2)
-	                $validate['g-recaptcha-response'] = 'required|recaptcha';
-	            else if(config('recaptcha.version') == 1)
-	                $validate['recaptcha_response_field'] = 'required|recaptcha';
-	            else
-	                throw new UnexpectedValueException("recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
-	        } else if(config('passwordprotect.use_securimage_captcha')) {
-				$validate['captcha_code'] = 'required|string';
-			}
-		}
+        $reachedthreshold = !is_null($routecaptchacount) && $routecaptchacount->count >= config('passwordprotect.onfailure_captcha_counter_threshold');
+        $checkcaptchaneeded = !config('passwordprotect.use_onfailure_captcha_counter') || $reachedthreshold;
+        if ($checkcaptchaneeded) {
+            if (config('passwordprotect.use_greggilbert_recaptcha')) {
+                if (config('recaptcha.version') == 2) {
+                    $validate['g-recaptcha-response'] = 'required|recaptcha';
+                } elseif (config('recaptcha.version') == 1) {
+                    $validate['recaptcha_response_field'] = 'required|recaptcha';
+                } else {
+                    throw new UnexpectedValueException("recaptcha is config version:" .config('recaptcha.version') . "fix is needed to make this work with recaptcha again");
+                }
+            } elseif (config('passwordprotect.use_securimage_captcha')) {
+                $validate['captcha_code'] = 'required|string';
+            }
+        }
 
-		$validator = Validator::make($request->all(), $validate);
+        $validator = \Validator::make($request->all(), $validate);
 
         if ($validator->fails()) {
-			if(config('passwordprotect.use_onfailure_captcha_counter')) {
-				incrementRouteCaptchaCount($rootRoute);
-			}
+            if (config('passwordprotect.use_onfailure_captcha_counter')) {
+                $this->incrementRouteCaptchaCount($rootRoute);
+            }
             return \Redirect::back()
                         ->withErrors($validator)
                         ->withInput();
         }
 
-		if($checkcaptchaneeded && config('passwordprotect.use_securimage_captcha')) {
-			$image = new \Securimage();
-		    if ($image->check($request->captcha_code) !== true)
-		    {
-				if(config('passwordprotect.use_onfailure_captcha_counter')) {
-					incrementRouteCaptchaCount($rootRoute);
-				}
-				$request->session()->forget('errors');
-		        $errors= ['The captcha code you entered does not match'];
-		        return \Redirect::back()
-		            ->withErrors($errors);
-		    }
-		}
+        if ($checkcaptchaneeded && config('passwordprotect.use_securimage_captcha')) {
+            $image = new \Securimage();
+            if ($image->check($request->captcha_code) !== true) {
+                if (config('passwordprotect.use_onfailure_captcha_counter')) {
+                    $this->incrementRouteCaptchaCount($rootRoute);
+                }
+                $request->session()->forget('errors');
+                $errors= ['The captcha code you entered does not match'];
+                return \Redirect::back()
+                    ->withErrors($errors);
+            }
+        }
 
         // Pull valid password from .env
         $rootRouteKey = $this->generateRootRouteKey($rootRoute);
@@ -129,9 +127,9 @@ class PasswordProtectController extends Controller
 
         // Check if password is correct
         if ($enteredPassword != $validPassword) {
-			if(config('passwordprotect.use_onfailure_captcha_counter')) {
-				incrementRouteCaptchaCount($rootRoute);
-			}
+            if (config('passwordprotect.use_onfailure_captcha_counter')) {
+                $this->incrementRouteCaptchaCount($rootRoute);
+            }
             $request->session()->forget('errors');
             return redirect()->back()->withErrors('Wrong password');
         }
@@ -143,15 +141,15 @@ class PasswordProtectController extends Controller
         // Put session key and value that will allow the user to pass through the PasswordProtectPage middleware
         $hashedSessionPassword = bcrypt($validPassword);
 
-		// Clear routes failure count
-		if(config('passwordprotect.use_onfailure_captcha_counter')) {
-			$routecaptchacount = RouteCaptchaCount::getByRouteName($rootRoute);
-			if(!is_null($routecaptchacount)) {
-				$routecaptchacount->delete();
-			}
-		}
+        // Clear routes failure count
+        if (config('passwordprotect.use_onfailure_captcha_counter')) {
+            $routecaptchacount = RouteCaptchaCount::getByRouteName($rootRoute);
+            if (!is_null($routecaptchacount)) {
+                $routecaptchacount->delete();
+            }
+        }
 
-        $request->session()->put($rootRouteKey,$hashedSessionPassword);
+        $request->session()->put($rootRouteKey, $hashedSessionPassword);
         return redirect($desiredRoute);
     }
 
@@ -161,34 +159,38 @@ class PasswordProtectController extends Controller
      *
      * @param $rootRoute
      * @return String - the valid password from .env
-	 * @throws UnexpectedValueException	- if .env does not contain the given rootRoute
+     * @throws UnexpectedValueException	- if .env does not contain the given rootRoute
      */
-    private function getValidPasswordFromEnv($rootRouteKey){
+    private function getValidPasswordFromEnv($rootRouteKey)
+    {
         $validPassword = env($rootRouteKey);
 
-        if ($validPassword == null)
+        if ($validPassword == null) {
             throw new UnexpectedValueException("Password Protect: \"" . $rootRouteKey ."\" was not set in the .env file");
+        }
 
         return $validPassword;
     }
 
-	/**
-	 * Generates the root route key for the root route
-	 *
-	 * @param $rootRoute
-	 * @return String - the root route path as a key
-	 */
-    public function generateRootRouteKey($rootRoute){
+    /**
+     * Generates the root route key for the root route
+     *
+     * @param $rootRoute
+     * @return String - the root route path as a key
+     */
+    public function generateRootRouteKey($rootRoute)
+    {
         return 'PP_' . strtoupper($rootRoute);
     }
 
-	/**
-	 * Increments a RouteCaptchaCount instances count variable with the given name, or creates a new instance and saves it to the database.
-	 * @param  [type] $route the route name.
-	 */
-	private function incrementRouteCaptchaCount($route) {
-		$routecaptchacount = RouteCaptchaCount::firstOrCreateByRouteName($rootRoute);
-		$routecaptchacount->count = $routecaptchacount->count + 1;
-		$routecaptchacount->save();
-	}
+    /**
+     * Increments a RouteCaptchaCount instances count variable with the given name, or creates a new instance and saves it to the database.
+     * @param  [type] $route the route name.
+     */
+    private function incrementRouteCaptchaCount($route)
+    {
+        $routecaptchacount = RouteCaptchaCount::firstOrNewByRouteName($route);
+        $routecaptchacount->count = $routecaptchacount->count + 1;
+        $routecaptchacount->save();
+    }
 }
