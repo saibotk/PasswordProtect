@@ -2,6 +2,27 @@
 
 return [
 
+	/*
+	|--------------------------------------------------------------------------
+	| Failure based Captcha enabler
+	|--------------------------------------------------------------------------
+	|
+	| Indicate if you want to let the captcha only be enabled, after a specific
+	| amount of requests.
+	|
+	*/
+	'use_onfailure_captcha_counter' => false,
+
+	/*
+	|--------------------------------------------------------------------------
+	| Failure captcha enabling count threshold
+	|--------------------------------------------------------------------------
+	|
+	| The specific amount of requests needed to enable a captcha.
+	|
+	*/
+	'onfailure_captcha_counter_threshold' => 3,
+
     /*
     |--------------------------------------------------------------------------
     | Greg Gilberts Recaptcha Package
@@ -11,7 +32,7 @@ return [
     |
     | Make sure you have it installed and configured
     | https://github.com/greggilbert/recaptcha
-
+	|
     */
     'use_greggilbert_recaptcha'    => false,
 

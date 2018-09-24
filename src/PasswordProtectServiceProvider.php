@@ -21,6 +21,7 @@ class PasswordProtectServiceProvider extends ServiceProvider
     {
         //either do this or manually register it in kernel.php
         //$router->aliasMiddleware('passwordprotect', 'Michaelmetz\Passwordprotect\Middleware\PasswordProtect');
+		$this->loadMigrationsFrom(__DIR__.'/database/migrations');
 
         $this->loadViewsFrom(__DIR__.'/views', 'passwordprotect');
 
