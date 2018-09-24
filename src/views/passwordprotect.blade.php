@@ -57,15 +57,17 @@
 		            <input type="password" class="form-control" id="password" name="password">
 		        </div>
 
-		        {{--I suggest also using recaptcha to prevent brute force attacks--}}
-				@if(config('passwordprotect.use_greggilbert_recaptcha'))
-		            {!! Recaptcha::render() !!}
-				@elseif (config('passwordprotect.use_securimage_captcha'))
-					<div class="form-group">
-						<img id="captcha" class="mb-2" style="width: 241px; height: 80px;" src="/captcha" alt="CAPTCHA Image" />
-						<a href="#" onclick="document.getElementById('captcha').src = '/captcha?' + Math.random(); return false">[Generate a new image]</a>
-						<input class="form-control" type="text" id="captcha_code" name="captcha_code" size="10" maxlength="6" />
-					</div>
+				{{--I suggest also using recaptcha to prevent brute force attacks--}}
+				@if($captchaneeded)
+					@if(config('passwordprotect.use_greggilbert_recaptcha'))
+			            {!! Recaptcha::render() !!}
+					@elseif (config('passwordprotect.use_securimage_captcha'))
+						<div class="form-group">
+							<img id="captcha" class="mb-2" style="width: 241px; height: 80px;" src="{{url('/captcha')}}" alt="CAPTCHA Image" />
+							<a href="#" onclick="document.getElementById('captcha').src = '{{url('/captcha')}}?' + Math.random(); return false"><i class="fas fa-sync"></i></a>
+							<input class="form-control" type="text" id="captcha_code" name="captcha_code" size="10" maxlength="6" />
+						</div>
+					@endif
 				@endif
 
 		        <button type="submit" class="btn btn-primary btn-lg">Submit</button>

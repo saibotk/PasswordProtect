@@ -38,19 +38,30 @@ class PasswordProtectController extends Controller
      * @return View - password protect view
      * @return redirect - if the this route was accessed without passing through middleware/PasswordProtect.php
      */
-    public function getForm(Request $request)
-    {
-        // Only send the password form if request passed through PasswordProtect the middleware
-        if ($request->session()->exists($this->desiredRouteKeyName)) {
-            if ($request->session()->exists($this->routeRouteKeyName)) {
-                $request->session()->reflash();
-                $protectedRoute = $request->session()->get($this->desiredRouteKeyName);
-                return view('passwordprotect::passwordprotect', compact('protectedRoute'));
-            }
-        }
+	 function getForm(Request $request)
+     {
+         // Only send the password form if request passed through PasswordProtect the middleware
+		 if ($request->session()->exists($this->desiredRouteKeyName))
+         {
+             if($request->session()->exists($this->routeRouteKeyName))
+             {
+ 				$request->session()->reflash();
+                 $protectedRoute = $request->session()->get($this->desiredRouteKeyName);
 
-        return redirect('/');
-    }
+ 				$captchaneeded = false;
+ 				if(config('passwordprotect.use_onfailure_captcha_counter')) {
+ 					$routecaptchacount = RouteCaptchaCount::getByRouteName($protectedRoute);
+					if(!is_null($routecaptchacount)) {
+						$captchaneeded = $routecaptchacount->isExceedingCountThreshold();
+					}
+ 				}
+
+                 return view('passwordprotect::passwordprotect', compact('protectedRoute', 'captchaneeded'));
+             }
+         }
+
+         return redirect('/');
+     }
 
     /**
      * Checks if password matches the password that protects the desired route
@@ -80,7 +91,7 @@ class PasswordProtectController extends Controller
         $validate = ['password' => 'required'];
 
         // I suggest also using recaptcha to prevent brute force attacks, this is to add it to validation from the view.
-        $reachedthreshold = !is_null($routecaptchacount) && $routecaptchacount->count >= config('passwordprotect.onfailure_captcha_counter_threshold');
+        $reachedthreshold = !is_null($routecaptchacount) && $routecaptchacount->isExceedingCountThreshold();
         $checkcaptchaneeded = !config('passwordprotect.use_onfailure_captcha_counter') || $reachedthreshold;
         if ($checkcaptchaneeded) {
             if (config('passwordprotect.use_greggilbert_recaptcha')) {

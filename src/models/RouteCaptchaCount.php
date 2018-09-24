@@ -65,4 +65,12 @@ class RouteCaptchaCount extends Model
         $hashedname = RouteCaptchaCount::getHashedKey($name);
         return RouteCaptchaCount::firstOrNew(['route' => $hashedname]);
     }
+
+	/**
+	 * Returns true if the count value is exceeding the threshold.
+	 * @return boolean
+	 */
+	public function isExceedingCountThreshold() {
+		return $this->count >= config('passwordprotect.onfailure_captcha_counter_threshold');
+	}
 }
